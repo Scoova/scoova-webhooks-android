@@ -55,15 +55,14 @@ publishing {
         create<MavenPublication>("release") {
             from(components["java"])
 
-            groupId = "info.scoo-va"
+            groupId    = "info.scoo-va"
             artifactId = "scoova-webhooks-android"
-            version = project.version.toString()
+            version    = project.version.toString()
 
             pom {
                 name.set("Scoova Webhooks SDK (Android / JVM)")
-                description.set("Standalone Kotlin client for Scoova webhook subscriptions plus HMAC-SHA256 signature verification.")
+                description.set("Webhook subscription CRUD + HMAC-SHA256 signature verification.")
                 url.set("https://github.com/Scoova/scoova-webhooks-android")
-
                 licenses {
                     license {
                         name.set("Apache License, Version 2.0")
@@ -71,7 +70,6 @@ publishing {
                         distribution.set("repo")
                     }
                 }
-
                 developers {
                     developer {
                         id.set("scoova")
@@ -79,7 +77,6 @@ publishing {
                         email.set("info@scoo-va.info")
                     }
                 }
-
                 scm {
                     connection.set("scm:git:git://github.com/Scoova/scoova-webhooks-android.git")
                     developerConnection.set("scm:git:ssh://github.com:Scoova/scoova-webhooks-android.git")
@@ -90,7 +87,7 @@ publishing {
     }
 
     repositories {
-        // GitHub Packages.
+        // GitHub Packages — works immediately in Actions via GITHUB_TOKEN.
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/Scoova/scoova-webhooks-android")
@@ -100,23 +97,26 @@ publishing {
             }
         }
 
-        // Maven Central via the Sonatype OSSRH s01 staging.
+        // Local staging dir. `publishReleasePublicationToLocalStagingRepository`
+        // writes the signed Maven layout here; the publish-to-central-portal.sh
+        // script zips it and uploads to Sonatype Central Portal.
         maven {
-            name = "MavenCentral"
-            val releasesUrl  = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
-            credentials {
-                username = System.getenv("OSSRH_USERNAME") ?: project.findProperty("ossrh.username") as? String ?: ""
-                password = System.getenv("OSSRH_PASSWORD") ?: project.findProperty("ossrh.password") as? String ?: ""
-            }
+            name = "LocalStaging"
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
         }
     }
 }
 
-// GPG signing — only required when actually publishing to Maven Central, so
-// a developer who only wants to build locally does not need a GPG key.
+// In-memory PGP signing — required by Maven Central. SIGNING_KEY is the
+// ASCII-armored secret key; SIGNING_PASSWORD is optional (current Scoova
+// release key is passphrase-less). When absent (local builds, GitHub
+// Packages), signing is skipped.
 signing {
-    isRequired = gradle.taskGraph.hasTask("publishReleasePublicationToMavenCentralRepository")
-    sign(publishing.publications["release"])
+    val signingKey: String? = System.getenv("SIGNING_KEY")
+    val signingPassword: String? = System.getenv("SIGNING_PASSWORD")
+    isRequired = signingKey != null
+    if (signingKey != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["release"])
+    }
 }
