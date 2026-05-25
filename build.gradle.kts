@@ -90,7 +90,7 @@ publishing {
     }
 
     repositories {
-        // GitHub Packages — push immediately with a PAT, no Sonatype dance.
+        // GitHub Packages.
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/Scoova/scoova-webhooks-android")

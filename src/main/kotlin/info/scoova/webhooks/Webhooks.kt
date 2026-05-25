@@ -118,9 +118,8 @@ class WebhooksClient(opts: WebhooksClientOptions = WebhooksClientOptions()) {
         val url = full.toHttpUrl().newBuilder().build()
         return Request.Builder().url(url)
             .header("X-API-Key", apiKey)
-            // Renamed from `build` because `Request.Builder.build()` would
-            // silently win inside the `apply { }` scope — the same trap that
-            // shipped the legacy SDK as GET-only for every POST.
+            // The lambda is named `configure` (not `build`) so it does not
+            // collide with `Request.Builder.build()` inside `apply { }`.
             .apply { configure() }
             .build()
     }
