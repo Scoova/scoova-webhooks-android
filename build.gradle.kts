@@ -56,7 +56,7 @@ publishing {
             from(components["java"])
 
             groupId = "info.scoo-va"
-            artifactId = "webhooks"
+            artifactId = "scoova-webhooks-android"
             version = project.version.toString()
 
             pom {
