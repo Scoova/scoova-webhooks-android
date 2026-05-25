@@ -5,7 +5,7 @@ signature verifier. Works in Android apps and server-side Kotlin / KMP equally.
 
 ```kotlin
 dependencies {
-    implementation("info.scoo-va:webhooks:1.0.0")
+    implementation("info.scoo-va:scoova-webhooks-android:1.0.2")
 }
 ```
 
